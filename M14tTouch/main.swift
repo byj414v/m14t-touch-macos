@@ -103,7 +103,9 @@ final class CursorHider {
     private var timer: Timer?
 
     /// 进入触摸模式：隐藏，并每 0.1 秒检查一次，被别的 App 显示回来就再隐藏
+    private var showToken = 0
     func hide() {
+        showToken += 1                     // 取消待执行的"松手后显示"
         guard Pref.hideCursor.on else { return }
         hidden = true
         enforce()
@@ -115,7 +117,15 @@ final class CursorHider {
         guard hidden, Pref.hideCursor.on else { return }
         if systemVisible { CGDisplayHideCursor(CGMainDisplayID()) }
     }
-    /// 退出触摸模式（真实鼠标 / 触控板动了）：完全显示
+    /// 手指全部离开后稍等再显示（连续点按之间不闪烁）
+    func showSoon(after delay: Double = 0.4) {
+        showToken += 1
+        let tok = showToken
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            if let self, tok == self.showToken { self.show() }
+        }
+    }
+    /// 退出触摸模式（松手，或真实鼠标 / 触控板动了）：完全显示
     func show() {
         guard hidden else { return }
         hidden = false
@@ -724,6 +734,7 @@ final class Gestures {
         }
         mode = .idle; maxFingers = 0
         overlay.show([], armed: false)
+        cursor.showSoon()                  // 只在手指按着屏幕时隐藏光标
     }
 }
 

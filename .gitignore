@@ -4,3 +4,4 @@ TouchUI/vtouch
 TouchUI/inject_probe
 *.txt
 .DS_Store
+wda/

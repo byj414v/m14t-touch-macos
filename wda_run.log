@@ -1,0 +1,11 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project WebDriverAgent.xcodeproj -scheme WebDriverAgentRunner -destination id=00008130-00062D000CF0001C DEVELOPMENT_TEAM=8SB4J2T28C test-without-building
+
+Build settings from command line:
+    DEVELOPMENT_TEAM = 8SB4J2T28C
+
+2026-11-15 01:17:56.868 xcodebuild[18102:553622] [MT] Run Destination Preflight: The destination is not ready.
+Error Domain=com.apple.dt.deviceprep Code=-3 "Unlock iPhone to Continue" UserInfo={NSRecoveryAttempter=<_DVTErrorRecoveryAttempter: 0x78ce4a4030>, NSLocalizedRecoveryOptions=(
+    "Cancel Testing"
+), NSLocalizedRecoverySuggestion=Xcode cannot launch WebDriverAgentRunner on iPhone because the device is locked., DVTRecoveryBlockKey=<__NSMallocBlock__: 0x78cbb1adc0>, NSLocalizedDescription=Unlock iPhone to Continue}
+2026-11-15 01:17:56.869 xcodebuild[18102:553622] [MT] Run Destination Preflight: Waiting for the destination to become ready.

@@ -70,7 +70,7 @@ The menu labels are in Chinese. In menu order:
 | 滚动惯性 | Scroll momentum | On | Keeps scrolling and slows down after you lift |
 | 甩动窗口分屏 | Flick window to tile | On | Flick a title bar to tile to half the screen |
 | 边缘手势（顶部搜索 / 底部 Dock） | Edge gestures (top: Spotlight / bottom: Dock) | On | |
-| 触摸时隐藏光标 | Hide pointer while touching | On | Moving the mouse shows it again |
+| 触摸时隐藏光标 | Hide pointer while touching | On | Hidden only while a finger is on the screen; shown again 0.4 s after you lift |
 | iPhone 镜像：直接触控 | iPhone Mirroring: direct touch | On | Uses the special mapping inside the iPhone Mirroring window |
 | 放大红黄绿按钮 | Big traffic lights | On | See above |
 | 点按自动吸附到按钮 / 菜单项 | Snap taps to buttons / menu items | On | A missed tap snaps to the nearest clickable element within 12–32 pt |
