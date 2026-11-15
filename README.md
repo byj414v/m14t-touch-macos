@@ -14,7 +14,7 @@ A free touch driver that turns the **Lenovo ThinkVision M14t** portable touchscr
 - Hides the mouse pointer only while a finger is on the screen
 - **Big traffic lights**: press or tap the top-left corner of a window to pop out large close / minimize / zoom buttons with a spring animation
 - **Tap snapping**: a tap that misses a small control snaps to the nearest button or menu item
-- **iPhone Mirroring**: tap, swipe between pages and scroll lists (scrolling is less smooth than a trackpad and pinch is not supported; see the research notes)
+- **iPhone Mirroring**: tap, swipe between pages, scroll lists, swipe up from the bottom edge for Home / App Switcher (scrolling is less smooth than a trackpad and pinch is not supported; see the research notes)
 - Every feature can be turned on or off from the menu bar icon
 
 ## Install

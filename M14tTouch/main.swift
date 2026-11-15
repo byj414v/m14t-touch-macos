@@ -37,6 +37,7 @@ let PINCH_STEP = 1.25
 let SWIPE3_DIST = 80.0
 let EDGE = 24.0
 let EDGE_SWIPE = 60.0
+let MIRROR_EDGE = 45.0     // iPhone 镜像窗口底边 / 顶边的手势区高度
 let TITLEBAR_HEIGHT = 38.0
 let FLICK_SPEED = 1400.0
 let MOMENTUM_DECAY = 0.94
@@ -232,6 +233,23 @@ func windowBounds(at p: CGPoint) -> CGRect? { windowInfo(at: p)?.rect }
 func isIPhoneMirroring(_ p: CGPoint) -> Bool {
     guard let w = windowInfo(at: p) else { return false }
     return NSRunningApplication(processIdentifier: w.pid)?.bundleIdentifier == "com.apple.ScreenContinuity"
+}
+
+/// 执行 iPhone 镜像“显示”菜单里的命令（主屏幕 / App 切换器 / 控制中心）
+func mirrorMenu(_ pid: pid_t, _ title: String) {
+    let app = AXUIElementCreateApplication(pid)
+    NSRunningApplication(processIdentifier: pid)?.activate()
+    guard let bar: AXUIElement = axAttr(app, kAXMenuBarAttribute),
+          let tops: [AXUIElement] = axAttr(bar, kAXChildrenAttribute) else { return }
+    for top in tops {
+        guard let menus: [AXUIElement] = axAttr(top, kAXChildrenAttribute) else { continue }
+        for m in menus {
+            guard let items: [AXUIElement] = axAttr(m, kAXChildrenAttribute) else { continue }
+            if let it = items.first(where: { (axAttr($0, kAXTitleAttribute) as String?) == title }) {
+                AXUIElementPerformAction(it, kAXPressAction as CFString); return
+            }
+        }
+    }
 }
 
 // MARK: - 辅助功能：命中测试 / 吸附 / 红黄绿按钮
@@ -515,6 +533,7 @@ final class Gestures {
     var lightCenters: [CGPoint] = []
     var lightsSticky = false, lightsToken = 0
     var mirror = false
+    var mirrorEdge = 0, mirrorPid: pid_t = 0     // 1 = 底边（回主屏幕），2 = 右上角（控制中心）
     func dismissLights() { lightsSticky = false; lightsToken += 1; overlay.hideLights() }
     func hotIndex(_ p: CGPoint) -> Int {
         guard let i = lightCenters.indices.min(by: { dist(lightCenters[$0], p) < dist(lightCenters[$1], p) }),
@@ -578,6 +597,12 @@ final class Gestures {
         // （滑动 → 触控板连续滚动，iPhone 会当成手指滑动；长按后拖动 → 按住拖动）
         mirror = Pref.iphoneDirect.on && !edgeTop && !edgeBottom && isIPhoneMirroring(start)
         scrollDiscrete = mirror
+        mirrorEdge = 0
+        if mirror, let w = windowInfo(at: start) {
+            mirrorPid = w.pid
+            if start.y > w.rect.maxY - MIRROR_EDGE { mirrorEdge = 1 }
+            else if start.y < w.rect.minY + MIRROR_EDGE && start.x > w.rect.midX { mirrorEdge = 2 }
+        }
         dbg("begin p=\(start) mirror=\(mirror) win=\(windowInfo(at: start).map { "\($0.pid) \($0.rect)" } ?? "nil") edge=\(edgeTop)/\(edgeBottom)")
         // 窗口左上角：放大的红黄绿按钮
         if !mirror, Pref.bigLights.on, let btns = trafficLights(near: start) {
@@ -611,7 +636,7 @@ final class Gestures {
         switch mode {
         case .undecided where dist(p, start) > TAP_MOVE:
             longPressToken += 1
-            if edgeTop || edgeBottom { mode = .edge; return }
+            if edgeTop || edgeBottom || mirrorEdge != 0 { mode = .edge; return }
             if !Pref.scrollMode.on && !mirror {
                 mode = .drag; mouse(.leftMouseDown, start); mouse(.leftMouseDragged, p)
             } else if !mirror && isTitleBar(start) {
@@ -632,6 +657,10 @@ final class Gestures {
             overlay.showLights(lightCenters, hot: hotIndex(p))
         case .scroll:
             scroll(dx: p.x - prev.x, dy: p.y - prev.y)
+        case .edge where mirrorEdge == 2:
+            if p.y - start.y > 40 { mode = .done; mirrorMenu(mirrorPid, "Control Center") }
+        case .edge where mirrorEdge == 1:
+            break                                   // 松手时再决定：主屏幕还是 App 切换器
         case .edge:
             if edgeTop && p.y - start.y > EDGE_SWIPE { mode = .done; key(49, .maskCommand) }          // ⌘空格
             else if edgeBottom && start.y - p.y > EDGE_SWIPE {                                        // 呼出 Dock
@@ -722,6 +751,13 @@ final class Gestures {
             case .scroll:
                 scroll(dx: 0, dy: 0, phase: 4)
                 if !mirror { momentum.start(vx: v.dx, vy: v.dy) }   // iPhone 镜像由 iOS 自己做惯性
+            case .edge where mirrorEdge == 1:
+                // iPhone 底边上滑：快速甩上去 → 主屏幕；上滑后停住再松手 → App 切换器
+                let up = start.y - last.y
+                if up > 40 {
+                    let paused = -v.dy < 250 && up > 110
+                    mirrorMenu(mirrorPid, paused ? "App Switcher" : "Home Screen")
+                }
             default: break
             }
         } else if maxFingers == 2 {

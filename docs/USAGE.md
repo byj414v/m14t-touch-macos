@@ -56,6 +56,11 @@
 | Tap | Tap |
 | One- or two-finger swipe | Swipe, change pages, scroll lists (converted to scroll-wheel events) |
 | Long-press | Long-press (mouse button held down) |
+| Swipe up from the bottom edge, quick | Home Screen |
+| Swipe up from the bottom edge, pause, then lift | App Switcher |
+| Swipe down from the top-right corner | Control Center |
+
+The edge zones are the bottom and top 45 pt of the mirroring window. These gestures run the commands in the iPhone Mirroring **View** menu.
 
 For the limits, see [RESEARCH.md](RESEARCH.md#iphone-mirroring): no pinch, and swiping is less smooth than a trackpad.
 

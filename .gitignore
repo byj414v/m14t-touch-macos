@@ -5,3 +5,5 @@ TouchUI/inject_probe
 *.txt
 .DS_Store
 wda/
+*.log
+xcode_signing_steps.png
