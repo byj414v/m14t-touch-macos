@@ -1,14 +1,16 @@
-# 研究笔记 Research notes
+# Research notes
 
-这些是开发时的实验记录。环境：MacBook Pro 14"（M5），macOS 27.2.1，Lenovo ThinkVision M14t。
+**English** | [简体中文](zh-CN/RESEARCH.md)
 
-## 原生触屏界面 Native touch UI
+These are notes from experiments during development. Setup: MacBook Pro 14" (M5), macOS 27.2.1, Lenovo ThinkVision M14t.
 
-macOS 27 为触屏 MacBook Pro 增加了触控界面：按下时放大的红黄绿按钮、更大的菜单、更大的点击区域等。目标是让 M14t 也触发这些界面。
+## Native touch UI
 
-### 系统怎么处理 M14t 的触摸
+macOS 27 adds a touch UI for the touchscreen MacBook Pro: traffic lights that grow when pressed, larger menus, larger hit targets, and so on. The goal was to make the M14t trigger this UI too.
 
-系统日志（`log stream`）显示，WindowServer 的直接触摸处理器收到了 M14t 的每一次触摸，但直接丢弃：
+### How macOS handles the M14t's touches
+
+The system log (`log stream`) shows that WindowServer's direct-touch processor receives every M14t touch, then drops it:
 
 ```
 [com.apple.BackBoard:TouchEvents] ignoring digitizer event for display <main> from unsupported service:
@@ -16,53 +18,53 @@ macOS 27 为触屏 MacBook Pro 增加了触控界面：按下时放大的红黄�
    name: Pen and multitouch sensor; transport: USB> ... BuiltIn: 0
 ```
 
-BackBoard 只接受**内置**（`BuiltIn = 1`）、与主显示器绑定的触摸屏。外接 USB 触摸屏的 `Built-In` 属性由 IOKit 驱动在匹配时设定，用户态改不了。
+BackBoard only accepts a **built-in** touchscreen (`BuiltIn = 1`) bound to the main display. For an external USB touchscreen, the `Built-In` property is set by the IOKit driver when it matches, and user space can't change it.
 
-### 已尝试的方法
+### Methods tried
 
-| 方法 | 是否需要降低安全性 | 结果 |
+| Method | Lowers security? | Result |
 |---|---|---|
-| 显示器覆盖文件 `DisplaySupportsTouch = true`（`TouchUI/enable_touch_ui.sh`） | 否（需要 sudo） | CoreDisplay 认为显示器支持触摸，但触摸仍被丢弃 |
-| `hidutil property --set '{"Built-In":true}'` | 否 | 命令返回成功，读回为空，被驱动忽略 |
-| 创建虚拟内置触摸屏 `IOHIDUserDeviceCreateWithProperties`（`TouchUI/vtouch.swift`） | 否 | 即使 root 也失败，需要 Apple 签发的 `com.apple.developer.hid.virtual.device` 授权 |
-| 伪造直接触摸 CGEvent（类型 59 + IOHIDEvent，`TouchUI/inject_probe.swift`） | 否 | App 收不到 |
-| 无代码 kext，用 `IOHIDProviderPropertyMerger` 合并 `Built-In = true`（`TouchUI/M14tBuiltIn.kext`） | **是**：恢复模式里降低启动安全性并允许第三方扩展 | 未测试 |
-| DriverKit 驱动 | 需要 Apple 批准的授权，或关闭 SIP | 未尝试 |
+| Display override file with `DisplaySupportsTouch = true` (`TouchUI/enable_touch_ui.sh`) | No (needs sudo) | CoreDisplay reports the display as touch-capable, but touches are still dropped |
+| `hidutil property --set '{"Built-In":true}'` | No | Reports success, but reads back empty; the driver ignores it |
+| Create a virtual built-in touchscreen with `IOHIDUserDeviceCreateWithProperties` (`TouchUI/vtouch.swift`) | No | Fails even as root; needs the Apple-granted `com.apple.developer.hid.virtual.device` entitlement |
+| Fake direct-touch CGEvents (type 59 + IOHIDEvent, `TouchUI/inject_probe.swift`) | No | Apps don't receive them |
+| Codeless kext that merges `Built-In = true` with `IOHIDProviderPropertyMerger` (`TouchUI/M14tBuiltIn.kext`) | **Yes**: lower startup security in recoveryOS and allow third-party extensions | Not tested |
+| DriverKit driver | Needs an Apple-approved entitlement, or SIP turned off | Not tried |
 
-结论：不降低安全性无法激活原生触屏界面。即使用 kext 把 `Built-In` 设为 1，日志里还有 `eventSource: mouse` 和显示器绑定（`<main>`）两个条件，可能仍不满足，例如需要 M14t 作为主显示器（合盖模式）。
+Conclusion: the native touch UI can't be enabled without lowering security. Even if a kext set `Built-In` to 1, the log shows two more conditions, `eventSource: mouse` and the display binding (`<main>`), which may still not be met. For example, the M14t might need to be the main display (clamshell mode).
 
-因此本项目选择在驱动里**模拟**部分效果：放大的红黄绿按钮、点按吸附。
+So the driver **emulates** some of these effects instead: big traffic lights and tap snapping.
 
-## iPhone 镜像 iPhone Mirroring
+## iPhone Mirroring
 
-原生触屏 Mac 上，iPhone 镜像可以直接触控（跟手滑动、多指）。外接触摸屏能做到多少：
+On the native touchscreen Mac, iPhone Mirroring supports direct touch (swipes that follow the finger, multi-finger gestures). How far an external touchscreen can get:
 
-### 事件测试
+### Event tests
 
-在 iPhone 镜像窗口上发送不同事件，截图对比：
+Different events were sent to the iPhone Mirroring window, with screenshots compared before and after:
 
-| 事件 | iPhone 是否滚动 |
+| Event | Does the iPhone scroll? |
 |---|---|
-| 连续滚动（像素、带 phase，触控板式） | 否 |
-| 连续滚动 + 合成的手势事件（类型 29，字段照抄真实触控板） | 否 |
-| 按住鼠标拖动（带 delta） | 否 |
-| **滚轮式滚动（非连续）** | **是** |
-| **原样回放录制的真实触控板事件**（`CGEvent(withData:)`） | 页面跟着动，但停在半途 |
+| Continuous scrolling (pixels, with phases, like a trackpad) | No |
+| Continuous scrolling + synthetic gesture events (type 29, fields copied from a real trackpad) | No |
+| Mouse drag with button held (with deltas) | No |
+| **Wheel-style (non-continuous) scrolling** | **Yes** |
+| **Exact replay of recorded real trackpad events** (`CGEvent(withData:)`) | The page follows, but stops halfway |
 
-回放真实触控板事件时，iPhone 能收到"手指在移动"，但收不到"手指离开"，页面停在半途，直到下一个手势开始才弹回。"松手"信号不在 CGEvent 事件流里（事件监听器录不到），第三方程序无法发送。
+When real trackpad events are replayed, the iPhone receives "finger moving" but never "finger lifted". The page stops halfway and only snaps back when the next gesture starts. The lift signal isn't in the CGEvent stream (an event tap can't record it), so a third-party program can't send it.
 
-### 结论
+### Conclusion
 
-- 驱动在 iPhone 镜像里用滚轮式滚动：能滚、能翻页，但不如触控板跟手，不支持捏合。
-- 原生触屏 Mac 很可能通过 iPhone 镜像与 iPhone 之间的私有加密连接直接发送多点触控，外部程序进不去，除非向苹果签名的进程注入代码（需要关闭 SIP）。
-- 另一条路是 WebDriverAgent（XCTest）在 iPhone 上合成真实多点触控：免费 Apple ID 即可，但只能在手势完成后整段重放，不跟手。
+- In iPhone Mirroring the driver uses wheel-style scrolling. It scrolls and changes pages, but doesn't follow the finger as closely as a trackpad, and pinch isn't supported.
+- The native touchscreen Mac most likely sends multi-touch directly over the private encrypted connection between iPhone Mirroring and the iPhone. Outside programs can't get in without injecting code into an Apple-signed process (which requires turning off SIP).
+- Another route is WebDriverAgent (XCTest), which synthesizes real multi-touch on the iPhone. A free Apple ID is enough, but it can only replay a whole gesture after it finishes, so it doesn't follow the finger.
 
-## M14t 硬件 Hardware
+## M14t hardware
 
-| 项目 | 值 |
+| Item | Value |
 |---|---|
-| 显示器 | Vendor `0x30AE`，Product `0x62A3`，1920×1080 |
-| 触控器 | Wacom "Pen and multitouch sensor"，USB VID `0x2D1F` PID `0x524C`，接在 Realtek USB 2.1 Hub 后 |
-| 模式开关 | Windows（本驱动使用）/ Android-Chrome |
-| 触摸报告 | Report ID 12，40 字节，5 个触点，X 0–12372，Y 0–6960 |
-| 识别类型 | macOS 把它当成 `eventSource: mouse` 的外接数位板，自身没有触控功能，只能当鼠标单击 |
+| Display | Vendor `0x30AE`, Product `0x62A3`, 1920×1080 |
+| Touch controller | Wacom "Pen and multitouch sensor", USB VID `0x2D1F` PID `0x524C`, behind a Realtek USB 2.1 hub |
+| Mode switch | Windows (used by this driver) / Android-Chrome |
+| Touch report | Report ID 12, 40 bytes, 5 contacts, X 0–12372, Y 0–6960 |
+| How macOS sees it | An external digitizer with `eventSource: mouse`; with no driver it only works as a mouse for single clicks |

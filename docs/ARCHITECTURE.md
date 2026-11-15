@@ -1,79 +1,81 @@
-# 实现原理 Architecture
+# Architecture
 
-驱动是一个单文件 Swift 程序（`M14tTouch/main.swift`），作为菜单栏 App 运行，不需要内核扩展。
+**English** | [简体中文](zh-CN/ARCHITECTURE.md)
+
+The driver is a single Swift file (`M14tTouch/main.swift`) that runs as a menu bar app. It needs no kernel extension.
 
 ```
-M14t 触控器 ──USB HID──▶ IOHIDManager（输入报告回调）
-                              │ 解析 5 点触摸
-                              ▼
-                        Gestures 状态机 ──▶ CGEvent（鼠标 / 滚动 / 键盘）──▶ macOS
-                              │          └▶ AXUIElement（按窗口按钮、移动窗口）
-                              ▼
-                        Overlay 透明窗口（触摸点、波纹、红黄绿按钮）
+M14t touch controller ──USB HID──▶ IOHIDManager (input report callback)
+                                        │ parse up to 5 contacts
+                                        ▼
+                                  Gestures state machine ──▶ CGEvent (mouse / scroll / keyboard) ──▶ macOS
+                                        │                  └▶ AXUIElement (press window buttons, move windows)
+                                        ▼
+                                  Overlay window (touch points, ripples, big traffic lights)
 ```
 
-## 1. 读取触摸 HID input
+## 1. Reading touch input
 
-- `IOHIDManager` 按 `VID 0x2D1F / PID 0x524C` 匹配，注册 input report 回调。需要**输入监控**权限（`IOHIDRequestAccess`）。
-- 报告格式（Report ID 12，40 字节）：
+- `IOHIDManager` matches `VID 0x2D1F / PID 0x524C` and registers an input report callback. This needs the **Input Monitoring** permission (`IOHIDRequestAccess`).
+- Report format (Report ID 12, 40 bytes):
 
-  | 偏移 | 内容 |
+  | Offset | Contents |
   |---|---|
   | 0 | Report ID = 12 |
-  | 2 | 本帧触点数 |
-  | 3 + 7·i | 第 i 个触点：`flags`（bit0 = 接触）、`id` u16、`X` u16（0–12372）、`Y` u16（0–6960） |
-  | 38–39 | 扫描时间 |
+  | 2 | Number of contacts in this frame |
+  | 3 + 7·i | Contact i: `flags` (bit 0 = touching), `id` u16, `X` u16 (0–12372), `Y` u16 (0–6960) |
+  | 38–39 | Scan time |
 
-- 坐标按 M14t 所在屏幕的 `CGDisplayBounds` 线性映射到全局坐标。屏幕通过名字含 "M14t" 的 `NSScreen` 找到，屏幕参数变化时重新查找。
+- Coordinates are mapped linearly to global coordinates using the `CGDisplayBounds` of the M14t's screen. The screen is the `NSScreen` whose name contains "M14t". It is looked up again whenever the screen configuration changes.
 
-## 2. 手势状态机 Gesture state machine
+## 2. Gesture state machine
 
-`Gestures.update()` 每帧收到当前所有触点，按"本次触摸出现过的最大手指数"分派：
+`Gestures.update()` receives all current contacts every frame and dispatches on the largest number of fingers seen during the current touch:
 
-| 模式 Mode | 含义 |
+| Mode | Meaning |
 |---|---|
-| `idle` | 没有手指 |
-| `undecided` | 刚按下，还没超过移动阈值（10pt） |
-| `armed` | 长按 0.5s 后，等待松开（右键）或拖动 |
-| `drag` / `windowDrag` | 按住鼠标拖动 / 拖窗口 |
-| `scroll` | 连续滚动 |
-| `pinch` | 双指缩放 |
-| `edge` | 从屏幕边缘开始的手势 |
-| `lights` | 放大的红黄绿按钮 |
-| `done` | 本次触摸已触发一次性动作，忽略剩余 |
+| `idle` | No fingers |
+| `undecided` | Just touched down, has not moved past the threshold (10 pt) yet |
+| `armed` | Long-pressed for 0.5 s; waiting for lift (right-click) or a drag |
+| `drag` / `windowDrag` | Dragging with the mouse button held / moving a window |
+| `scroll` | Continuous scrolling |
+| `pinch` | Two-finger zoom |
+| `edge` | A gesture that started at a screen edge |
+| `lights` | Big traffic lights |
+| `done` | A one-shot action already fired; ignore the rest of this touch |
 
-注意：`begin()` 设定的特殊模式（`lights`、iPhone 镜像）在第一根手指计数时必须保留，否则会被重置为 `undecided`。
+Note: special modes set in `begin()` (`lights`, iPhone Mirroring) must be kept when the first finger is counted, or they get reset to `undecided`.
 
-主要阈值都在文件开头（`TAP_MOVE`、`LONG_PRESS`、`EDGE`、`MOMENTUM_DECAY` 等）。
+The main thresholds are at the top of the file (`TAP_MOVE`, `LONG_PRESS`, `EDGE`, `MOMENTUM_DECAY`, and so on).
 
-## 3. 输出事件 Event output
+## 3. Event output
 
-- 所有事件用 `CGEventSource(.hidSystemState)` 生成，发到 `.cghidEventTap`，并在 `eventSourceUserData` 打上标记 `0x4D313474`（"M14t"），以便区分自己发出的事件。
-- **滚动**：像素单位、连续滚动（`isContinuous = 1`），带 `scrollPhase`（字段 99）和 `momentumPhase`（字段 123），App 会当作触控板滚动处理，支持橡皮筋回弹。
-- **惯性**：松手后按 60Hz 发送 momentum 阶段事件，速度每帧乘 0.94。
-- **呼出 Dock**：在屏幕底边连续发送 20 个向下的 `mouseMoved`（带 deltaY），模拟鼠标顶到底边。
-- **隐藏光标**：后台 App 默认不能隐藏光标。用私有的 `CGSSetConnectionProperty(..., "SetsCursorInBackground", true)` 后调用 `CGDisplayHideCursor`；再用定时器检查 `CGCursorIsVisible`，因为被点击的 App 可能自己把光标显示回来。
+- All events are created with `CGEventSource(.hidSystemState)`, posted to `.cghidEventTap`, and tagged with `0x4D313474` ("M14t") in `eventSourceUserData` so the driver can tell its own events apart.
+- **Scrolling**: pixel units, continuous (`isContinuous = 1`), with `scrollPhase` (field 99) and `momentumPhase` (field 123). Apps treat this like trackpad scrolling, including rubber-band bounce.
+- **Momentum**: after lift, momentum-phase events are sent at 60 Hz, with the speed multiplied by 0.94 each frame.
+- **Showing the Dock**: sends 20 downward `mouseMoved` events (with deltaY) at the bottom edge, like pushing the mouse against the bottom of the screen.
+- **Hiding the pointer**: a background app normally can't hide the pointer. The driver calls the private `CGSSetConnectionProperty(..., "SetsCursorInBackground", true)` and then `CGDisplayHideCursor`. A timer checks `CGCursorIsVisible`, because the app that was clicked may show the pointer again.
 
-## 4. 辅助功能 Accessibility
+## 4. Accessibility
 
-- `AXUIElementCopyElementAtPosition` 找到手指下的元素。
-- **吸附**：在 12 / 22 / 32pt 三圈 × 8 个方向采样，找最近的按钮、复选框、菜单项、链接等可点元素，点它的中心。
-- **红黄绿按钮**：读窗口的 `AXCloseButton` / `AXMinimizeButton` / `AXZoomButton`，用 `AXPress` 执行。
-- **窗口分屏**：设置窗口的 `AXPosition` / `AXSize`。
+- `AXUIElementCopyElementAtPosition` finds the element under the finger.
+- **Snapping**: samples 8 directions on rings of 12 / 22 / 32 pt, finds the nearest clickable element (button, checkbox, menu item, link, and so on), and clicks its center.
+- **Traffic lights**: reads the window's `AXCloseButton` / `AXMinimizeButton` / `AXZoomButton` and runs them with `AXPress`.
+- **Window tiling**: sets the window's `AXPosition` / `AXSize`.
 
-## 5. 叠加层 Overlay
+## 5. Overlay
 
-一个覆盖 M14t 整个屏幕、忽略鼠标、层级为 `screenSaver` 的透明窗口。画触摸点、点按波纹、吸附高亮和红黄绿按钮。按钮动画用阻尼弹簧 `1 − e^(−9t)·cos(15t)`，从真实小按钮的位置弹出；悬停的按钮平滑放大到 1.28 倍。
+A transparent window covers the whole M14t screen. It ignores the mouse and sits at the `screenSaver` level. It draws touch points, tap ripples, the snapping highlight, and the traffic lights. The buttons spring out from the real small buttons with a damped spring `1 − e^(−9t)·cos(15t)`, and the button under the finger smoothly grows to 1.28×.
 
-## 6. iPhone 镜像 iPhone Mirroring
+## 6. iPhone Mirroring
 
-- 用 `CGWindowListCopyWindowInfo` 找手指下的窗口，所属 App 的 bundle id 为 `com.apple.ScreenContinuity` 时进入镜像模式。
-- iPhone 镜像不认触控板式的连续滚动，也不把鼠标拖动当成滑动，只认**滚轮式（非连续）滚动**。
-- 手指位移先累积，再用 120Hz 定时器以整数像素匀速发出，否则零碎的小事件会被当成点按。
-- 镜像模式下关闭驱动自己的惯性，否则 iOS 会以为手指一直没松开。
+- `CGWindowListCopyWindowInfo` finds the window under the finger. If it belongs to the app with bundle id `com.apple.ScreenContinuity`, the driver switches to mirroring mode.
+- iPhone Mirroring ignores trackpad-style continuous scrolling and doesn't treat a mouse drag as a swipe. It only accepts **wheel-style (non-continuous) scrolling**.
+- Finger movement is accumulated first, then sent as whole pixels by a 120 Hz timer at a steady rate. Small scattered events would otherwise be read as taps.
+- The driver's own momentum is off in mirroring mode, or iOS behaves as if the finger never lifted.
 
-## 7. 签名与权限 Signing and TCC
+## 7. Signing and permissions (TCC)
 
-macOS 的隐私授权（TCC）绑定代码签名。临时签名（ad-hoc）每次编译都会变，授权随之失效。`build.sh` 优先使用钥匙串里名为 `M14tTouch Local Signing` 的自签名代码签名证书，固定 identifier `local.m14t.touch`，重新编译后授权仍然有效。
+macOS privacy permissions (TCC) are tied to the code signature. An ad-hoc signature changes on every build, which invalidates the permissions. `build.sh` prefers a self-signed code-signing certificate named `M14tTouch Local Signing` in the keychain, with the fixed identifier `local.m14t.touch`, so permissions stay valid after a rebuild.
 
-创建证书：钥匙串访问 → 证书助理 → 创建证书 → 名称 `M14tTouch Local Signing`，类型"自签名根证书"，证书类型"代码签名"。
+To create the certificate: Keychain Access → Certificate Assistant → Create a Certificate → name `M14tTouch Local Signing`, identity type "Self-Signed Root", certificate type "Code Signing".

@@ -1,92 +1,96 @@
-# 使用说明 Usage
+# Usage
 
-## 准备 Setup
+**English** | [简体中文](zh-CN/USAGE.md)
 
-1. 触摸屏背面的模式开关拨到 **Windows**（Android/Chrome 模式下报告格式不同）。
-2. 用 USB-C（推荐 Thunderbolt / 全功能线）连接，确认屏幕已经点亮。触控器会比显示晚几秒出现。
-3. 运行 `M14tTouch/build.sh`，在"系统设置 → 隐私与安全性"中给 **M14tTouch** 打开：
-   - **输入监控**：读取触摸屏原始 HID 数据
-   - **辅助功能**：发送鼠标 / 键盘事件、读取和点按窗口按钮
-4. 菜单栏出现 `☝︎` 即表示驱动在运行；显示 `☝︎!` 表示缺权限或没找到触摸屏。点开菜单，第一行是状态。
+## Setup
 
-## 手势 Gestures
+1. Set the mode switch on the back of the screen to **Windows** (the Android/Chrome mode uses a different report format).
+2. Connect with USB-C (a Thunderbolt or full-featured cable is recommended) and make sure the screen lights up. The touch controller appears a few seconds after the display.
+3. Run `M14tTouch/build.sh`, then in **System Settings → Privacy & Security** turn on **M14tTouch** under:
+   - **Input Monitoring**: reads raw HID data from the touchscreen
+   - **Accessibility**: sends mouse and keyboard events, reads and presses window buttons
+4. A `☝︎` in the menu bar means the driver is running. `☝︎!` means a permission is missing or the touchscreen was not found. Open the menu: the first line shows the status.
 
-### 单指
+## Gestures
 
-| 动作 | 效果 |
+### One finger
+
+| Action | Result |
 |---|---|
-| 轻点 | 左键单击（开启吸附时会对准附近按钮） |
-| 快速点两下 | 双击 |
-| 滑动 | 滚动（iPad 式，带惯性）；关闭"单指滑动 = 滚动"后改为拖动 |
-| 在标题栏滑动 | 拖动窗口 |
-| 在标题栏快速甩向左 / 右 | 窗口贴到屏幕左半 / 右半 |
-| 长按 0.5 秒后松开 | 右键 |
-| 长按 0.5 秒后拖动 | 按住拖动（选择文字、拖文件） |
-| 从顶边向下滑 | 聚焦搜索（⌘空格） |
-| 从底边向上滑 | 呼出 Dock |
+| Tap | Left click (snaps to a nearby button when snapping is on) |
+| Tap twice quickly | Double-click |
+| Swipe | Scroll (iPad style, with momentum); drag instead when "One-finger swipe = scroll" is off |
+| Swipe on a title bar | Move the window |
+| Flick a title bar left / right | Tile the window to the left / right half of the screen |
+| Long-press 0.5 s, then lift | Right-click |
+| Long-press 0.5 s, then drag | Press-and-drag (select text, drag files) |
+| Swipe down from the top edge | Spotlight (⌘Space) |
+| Swipe up from the bottom edge | Show the Dock |
 
-### 窗口左上角（放大的红黄绿按钮）
+### Top-left corner of a window (big traffic lights)
 
-| 动作 | 效果 |
+| Action | Result |
 |---|---|
-| 轻点左上角 | 弹出三个大按钮；再点其中一个执行，点别处或 4 秒后消失 |
-| 按住左上角，滑到某个按钮上松开 | 直接执行：红 关闭 / 黄 最小化 / 绿 缩放 |
+| Tap the top-left corner | Pops out three large buttons; tap one to use it. Tapping elsewhere, or waiting 4 s, hides them |
+| Press the corner, slide onto a button, lift | Runs it directly: red close / yellow minimize / green zoom |
 
-### 双指
+### Two fingers
 
-| 动作 | 效果 |
+| Action | Result |
 |---|---|
-| 滑动 | 滚动（带惯性） |
-| 捏合 / 张开 | 缩小 / 放大（发送 ⌘− / ⌘=） |
-| 轻点 | 右键 |
+| Swipe | Scroll (with momentum) |
+| Pinch in / out | Zoom out / in (sends ⌘− / ⌘=) |
+| Tap | Right-click |
 
-### 三指
+### Three fingers
 
-| 动作 | 效果 |
+| Action | Result |
 |---|---|
-| 左 / 右滑 | 切换到右边 / 左边的桌面 |
-| 上滑 / 下滑 | 调度中心 / App 窗口 |
+| Swipe left / right | Switch to the Space on the right / left |
+| Swipe up / down | Mission Control / App Exposé |
 
-### iPhone 镜像窗口内
+### Inside the iPhone Mirroring window
 
-| 动作 | 效果 |
+| Action | Result |
 |---|---|
-| 轻点 | 点按 |
-| 单指或双指滑动 | 滑动、翻页、滚动列表（转换成滚轮事件） |
-| 长按 | 长按（按住鼠标） |
+| Tap | Tap |
+| One- or two-finger swipe | Swipe, change pages, scroll lists (converted to scroll-wheel events) |
+| Long-press | Long-press (mouse button held down) |
 
-限制见 [RESEARCH.md](RESEARCH.md#iphone-镜像)：不支持捏合，滑动不如触控板跟手。
+For the limits, see [RESEARCH.md](RESEARCH.md#iphone-mirroring): no pinch, and swiping is less smooth than a trackpad.
 
-## 菜单选项 Menu toggles
+## Menu options
 
-| 选项 | 默认 | 说明 |
-|---|---|---|
-| 单指滑动 = 滚动（iPad 式） | 开 | 关闭后单指滑动 = 拖动 |
-| 显示触摸点 | 开 | 在触摸位置画圆圈和点按波纹 |
-| 滚动惯性 | 开 | 松手后继续滚动并减速 |
-| 甩动窗口分屏 | 开 | 标题栏快速甩动贴半屏 |
-| 边缘手势 | 开 | 顶边搜索 / 底边 Dock |
-| 触摸时隐藏光标 | 开 | 触摸期间隐藏鼠标指针，动鼠标会恢复 |
-| iPhone 镜像：直接触控 | 开 | iPhone 镜像窗口内使用专用映射 |
-| 放大红黄绿按钮 | 开 | 见上 |
-| 点按自动吸附到按钮 / 菜单项 | 开 | 没点准时吸附到 12–32pt 内最近的可点元素 |
+The menu labels are in Chinese. In menu order:
 
-设置保存在 App 的 `UserDefaults`（域 `local.m14t.touch`），键名就是菜单上的文字。
+| Menu label | English meaning | Default | Notes |
+|---|---|---|---|
+| 单指滑动 = 滚动（iPad 式） | One-finger swipe = scroll (iPad style) | On | When off, a one-finger swipe drags |
+| 显示触摸点 | Show touch points | On | Draws circles at the touch points and a ripple on taps |
+| 滚动惯性 | Scroll momentum | On | Keeps scrolling and slows down after you lift |
+| 甩动窗口分屏 | Flick window to tile | On | Flick a title bar to tile to half the screen |
+| 边缘手势（顶部搜索 / 底部 Dock） | Edge gestures (top: Spotlight / bottom: Dock) | On | |
+| 触摸时隐藏光标 | Hide pointer while touching | On | Moving the mouse shows it again |
+| iPhone 镜像：直接触控 | iPhone Mirroring: direct touch | On | Uses the special mapping inside the iPhone Mirroring window |
+| 放大红黄绿按钮 | Big traffic lights | On | See above |
+| 点按自动吸附到按钮 / 菜单项 | Snap taps to buttons / menu items | On | A missed tap snaps to the nearest clickable element within 12–32 pt |
 
-## 开机自启 Autostart
+Settings are stored in the app's `UserDefaults` (domain `local.m14t.touch`). The key is the menu label.
+
+## Autostart
 
 ```bash
-bash M14tTouch/install_autostart.sh            # 开启
-bash M14tTouch/install_autostart.sh --remove   # 关闭
+bash M14tTouch/install_autostart.sh            # turn on
+bash M14tTouch/install_autostart.sh --remove   # turn off
 ```
 
-LaunchAgent 在驱动异常退出时会自动重启它。
+The LaunchAgent restarts the driver if it exits unexpectedly.
 
-## 卸载 Uninstall
+## Uninstall
 
 ```bash
 bash M14tTouch/install_autostart.sh --remove
 rm -rf ~/Applications/M14tTouch.app
 ```
 
-然后在"隐私与安全性"的"输入监控"和"辅助功能"里移除 M14tTouch。
+Then remove M14tTouch from **Input Monitoring** and **Accessibility** in Privacy & Security.
