@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  无代码 kext：只用 Apple 自带的 IOHIDProviderPropertyMerger，
+  给 Lenovo M14t 的触控器 (Wacom 2D1F:524C) 合并 "Built-In" = true，
+  让 macOS 27 的 BackBoard 把它当成内置触摸屏。没有任何可执行代码。
+-->
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key><string>en</string>
+    <key>CFBundleIdentifier</key><string>local.m14t.builtin</string>
+    <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+    <key>CFBundleName</key><string>M14tBuiltIn</string>
+    <key>CFBundlePackageType</key><string>KEXT</string>
+    <key>CFBundleShortVersionString</key><string>1.0</string>
+    <key>CFBundleVersion</key><string>1.0</string>
+    <key>OSBundleLibraries</key>
+    <dict>
+        <key>com.apple.iokit.IOHIDFamily</key><string>2.0</string>
+    </dict>
+    <key>IOKitPersonalities</key>
+    <dict>
+        <!-- 1. 在 HID 设备层合并：驱动启动前就带上 Built-In -->
+        <key>M14t Device Built-In</key>
+        <dict>
+            <key>CFBundleIdentifier</key><string>com.apple.iokit.IOHIDFamily</string>
+            <key>IOClass</key><string>IOHIDProviderPropertyMerger</string>
+            <key>IOProviderClass</key><string>IOHIDDevice</string>
+            <key>IOPropertyMatch</key>
+            <dict>
+                <key>VendorID</key><integer>11551</integer>
+                <key>ProductID</key><integer>21068</integer>
+            </dict>
+            <key>IOProviderMergeProperties</key>
+            <dict>
+                <key>Built-In</key><true/>
+            </dict>
+        </dict>
+        <!-- 2. 在 HID 事件服务层合并：BackBoard 读取的就是这一层 -->
+        <key>M14t EventService Built-In</key>
+        <dict>
+            <key>CFBundleIdentifier</key><string>com.apple.iokit.IOHIDFamily</string>
+            <key>IOClass</key><string>IOHIDProviderPropertyMerger</string>
+            <key>IOProviderClass</key><string>IOHIDEventService</string>
+            <key>IOPropertyMatch</key>
+            <dict>
+                <key>VendorID</key><integer>11551</integer>
+                <key>ProductID</key><integer>21068</integer>
+            </dict>
+            <key>IOProviderMergeProperties</key>
+            <dict>
+                <key>Built-In</key><true/>
+            </dict>
+        </dict>
+    </dict>
+</dict>
+</plist>
