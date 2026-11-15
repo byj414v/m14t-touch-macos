@@ -4,8 +4,71 @@ Command line invocation:
 Build settings from command line:
     DEVELOPMENT_TEAM = 8SB4J2T28C
 
-2026-11-15 01:17:56.868 xcodebuild[18102:553622] [MT] Run Destination Preflight: The destination is not ready.
-Error Domain=com.apple.dt.deviceprep Code=-3 "Unlock iPhone to Continue" UserInfo={NSRecoveryAttempter=<_DVTErrorRecoveryAttempter: 0x78ce4a4030>, NSLocalizedRecoveryOptions=(
-    "Cancel Testing"
-), NSLocalizedRecoverySuggestion=Xcode cannot launch WebDriverAgentRunner on iPhone because the device is locked., DVTRecoveryBlockKey=<__NSMallocBlock__: 0x78cbb1adc0>, NSLocalizedDescription=Unlock iPhone to Continue}
-2026-11-15 01:17:56.869 xcodebuild[18102:553622] [MT] Run Destination Preflight: Waiting for the destination to become ready.
+2026-11-15 01:21:54.673509-0800 WebDriverAgentRunner-Runner[794:27422] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'All tests' started at 2026-11-15 01:22:00.271.
+Test Suite 'WebDriverAgentRunner.xctest' started at 2026-11-15 01:22:00.272.
+Test Suite 'UITestingUITests' started at 2026-11-15 01:22:00.272.
+    t =      nans Suite Set Up
+2026-11-15 01:22:00.338050-0800 WebDriverAgentRunner-Runner[794:27422] [MC] Reading from public effective user settings.
+2026-11-15 01:22:00.346783-0800 WebDriverAgentRunner-Runner[794:27422] [User Defaults] Couldn't write values for keys (
+    KeyboardAutocorrection
+) in CFPrefsPlistSource<0x122e42800> (Domain: com.apple.keyboard.preferences, User: kCFPreferencesCurrentUser, ByHost: No, Container: (null), Contents Need Refresh: No (Cached: 0, Newest: 0, Index: 1158): setting preferences outside an application's container requires user-preference-write or file-write-data sandbox access
+2026-11-15 01:22:00.375568-0800 WebDriverAgentRunner-Runner[794:27422] [User Defaults] Couldn't write values for keys (
+    "KeyboardAutocorrection_changedAt"
+) in CFPrefsPlistSource<0x122e42800> (Domain: com.apple.keyboard.preferences, User: kCFPreferencesCurrentUser, ByHost: No, Container: (null), Contents Need Refresh: No (Cached: 0, Newest: 0, Index: 1158): setting preferences outside an application's container requires user-preference-write or file-write-data sandbox access
+2026-11-15 01:22:00.375845-0800 WebDriverAgentRunner-Runner[794:27422] [User Defaults] Couldn't write values for keys (
+    "KeyboardAutocorrection_buildAtChange"
+) in CFPrefsPlistSource<0x122e42800> (Domain: com.apple.keyboard.preferences, User: kCFPreferencesCurrentUser, ByHost: No, Container: (null), Contents Need Refresh: No (Cached: 0, Newest: 0, Index: 1158): setting preferences outside an application's container requires user-preference-write or file-write-data sandbox access
+2026-11-15 01:22:00.381374-0800 WebDriverAgentRunner-Runner[794:27422] [User Defaults] Couldn't write values for keys (
+    "KeyboardAutocorrection_previousValue"
+) in CFPrefsPlistSource<0x122e42800> (Domain: com.apple.keyboard.preferences, User: kCFPreferencesCurrentUser, ByHost: No, Container: (null), Contents Need Refresh: No (Cached: 0, Newest: 0, Index: 1158): setting preferences outside an application's container requires user-preference-write or file-write-data sandbox access
+2026-11-15 01:22:00.381793-0800 WebDriverAgentRunner-Runner[794:27422] [User Defaults] Couldn't write values for keys (
+    "KeyboardAutocorrection_analyzedAt"
+) in CFPrefsPlistSource<0x122e42800> (Domain: com.apple.keyboard.preferences, User: kCFPreferencesCurrentUser, ByHost: No, Container: (null), Contents Need Refresh: No (Cached: 0, Newest: 0, Index: 1158): setting preferences outside an application's container requires user-preference-write or file-write-data sandbox access
+2026-11-15 01:22:00.442332-0800 WebDriverAgentRunner-Runner[794:27422] [MC] Reading from public effective user settings.
+2026-11-15 01:22:00.450514-0800 WebDriverAgentRunner-Runner[794:27422] [User Defaults] Couldn't write values for keys (
+    KeyboardPrediction
+) in CFPrefsPlistSource<0x122e42800> (Domain: com.apple.keyboard.preferences, User: kCFPreferencesCurrentUser, ByHost: No, Container: (null), Contents Need Refresh: No (Cached: 0, Newest: 0, Index: 1158): setting preferences outside an application's container requires user-preference-write or file-write-data sandbox access
+2026-11-15 01:22:00.452810-0800 WebDriverAgentRunner-Runner[794:27422] [User Defaults] Couldn't write values for keys (
+    KeyboardShowPredictionBar
+) in CFPrefsPlistSource<0x122e42800> (Domain: com.apple.keyboard.preferences, User: kCFPreferencesCurrentUser, ByHost: No, Container: (null), Contents Need Refresh: No (Cached: 0, Newest: 0, Index: 1158): setting preferences outside an application's container requires user-preference-write or file-write-data sandbox access
+2026-11-15 01:22:00.456082-0800 WebDriverAgentRunner-Runner[794:27422] [User Defaults] Couldn't write values for keys (
+    DidShowGestureKeyboardIntroduction
+) in CFPrefsPlistSource<0x122e42800> (Domain: com.apple.keyboard.preferences, User: kCFPreferencesCurrentUser, ByHost: No, Container: (null), Contents Need Refresh: No (Cached: 0, Newest: 0, Index: 1158): setting preferences outside an application's container requires user-preference-write or file-write-data sandbox access
+Test Case '-[UITestingUITests testRunner]' started.
+    t =     0.00s Start Test at 2026-11-15 01:22:00.470
+    t =     0.00s Set Up
+2026-11-15 01:22:00.472106-0800 WebDriverAgentRunner-Runner[794:27422] Built at Nov 15 2026 01:17:19
+2026-11-15 01:22:00.501859-0800 WebDriverAgentRunner-Runner[794:27422] ServerURLHere->http://192.168.1.210:8100<-ServerURLHere
+2026-11-15 01:22:11.724162-0800 WebDriverAgentRunner-Runner[794:27447] Using singleton test manager
+2026-11-15 01:22:11.746715-0800 WebDriverAgentRunner-Runner[794:27451] [connection] [C1 192.168.1.173:55021 tcp, local: 192.168.1.210:8100, server, definite, attribution: developer] is already cancelled, ignoring cancel
+2026-11-15 01:23:01.147112-0800 WebDriverAgentRunner-Runner[794:27451] [connection] [C2 192.168.1.173:55036 tcp, local: 192.168.1.210:8100, server, definite, attribution: developer] is already cancelled, ignoring cancel
+2026-11-15 01:23:01.413868-0800 WebDriverAgentRunner-Runner[794:27422] Getting the most recent active application (out of 1 total items)
+    t =    60.97s Find the Application 'com.apple.Preferences'
+    t =    61.09s     Requesting snapshot of accessibility hierarchy for app with pid 778
+2026-11-15 01:23:01.903112-0800 WebDriverAgentRunner-Runner[794:27447] [connection] [C3 192.168.1.173:55037 tcp, local: 192.168.1.210:8100, server, definite, attribution: developer] is already cancelled, ignoring cancel
+2026-11-15 01:23:01.929844-0800 WebDriverAgentRunner-Runner[794:27422] Getting the most recent active application (out of 1 total items)
+    t =    61.48s Find the Application 'com.apple.Preferences'
+    t =    61.49s     Requesting snapshot of accessibility hierarchy for app with pid 778
+    t =    61.53s Find the Application 'com.apple.Preferences'
+    t =    61.54s     Requesting snapshot of accessibility hierarchy for app with pid 778
+    t =    61.59s Find the Application 'com.apple.Preferences'
+    t =    61.59s     Requesting snapshot of accessibility hierarchy for app with pid 778
+    t =    61.63s Find the Application 'com.apple.Preferences'
+    t =    61.63s     Requesting snapshot of accessibility hierarchy for app with pid 778
+2026-11-15 01:23:02.747824-0800 WebDriverAgentRunner-Runner[794:27422] Waiting up to 2s until com.apple.Preferences is in idle state (including animations)
+    t =    62.28s Wait for com.apple.Preferences to idle
+2026-11-15 01:23:02.952115-0800 WebDriverAgentRunner-Runner[794:27451] [connection] [C4 192.168.1.173:55039 tcp, local: 192.168.1.210:8100, server, definite, attribution: developer] is already cancelled, ignoring cancel
+2026-11-15 01:23:20.642621-0800 WebDriverAgentRunner-Runner[794:27422] Getting the most recent active application (out of 1 total items)
+    t =    80.20s Find the Application 'com.apple.Preferences'
+    t =    80.20s     Requesting snapshot of accessibility hierarchy for app with pid 778
+    t =    80.25s Find the Application 'com.apple.Preferences'
+    t =    80.25s     Requesting snapshot of accessibility hierarchy for app with pid 778
+    t =    80.30s Find the Application 'com.apple.Preferences'
+    t =    80.30s     Requesting snapshot of accessibility hierarchy for app with pid 778
+    t =    80.34s Find the Application 'com.apple.Preferences'
+    t =    80.34s     Requesting snapshot of accessibility hierarchy for app with pid 778
+2026-11-15 01:23:21.364200-0800 WebDriverAgentRunner-Runner[794:27422] Waiting up to 2s until com.apple.Preferences is in idle state (including animations)
+    t =    80.90s Wait for com.apple.Preferences to idle
+2026-11-15 01:23:21.443419-0800 WebDriverAgentRunner-Runner[794:29132] [connection] [C5 192.168.1.173:55047 tcp, local: 192.168.1.210:8100, server, definite, attribution: developer] is already cancelled, ignoring cancel

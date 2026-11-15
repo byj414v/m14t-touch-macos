@@ -9,7 +9,7 @@ APP=M14tTouch.app
 mkdir -p $APP/Contents/MacOS
 swiftc -O -target arm64-apple-macos14.0 main.swift -o $APP/Contents/MacOS/M14tTouch -framework AppKit -framework IOKit
 # 有固定证书就用它（授权不会因重新编译失效），否则退回临时签名
-if security find-identity -v -p codesigning | grep -q "$IDENTITY"; then
+if security find-identity -p codesigning | grep -q "\"$IDENTITY\""; then
     codesign --force --sign "$IDENTITY" --identifier local.m14t.touch $APP
 else
     echo "未找到证书 \"$IDENTITY\"，使用临时签名（每次重新编译后需重新授权）"
